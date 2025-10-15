@@ -1,0 +1,42 @@
+---
+import PlotFigure from "../components/PlotFigure.astro";
+import Layout from "../layouts/Layout.astro";
+import * as Plot from "@observablehq/plot";
+import penguins from "../assets/penguins.json";
+---
+
+<Layout>
+  <h1 class="text-2xl">Analyse des Manchots</h1>
+  
+  <PlotFigure
+    title="Relation entre la longueur et la profondeur du bec des manchots"
+    subtitle="Analyse comparative des trois espèces de manchots"
+    caption="Figure 1. Nuage de points montrant la corrélation entre les dimensions du bec (en mm) pour les espèces Adélie, Chinstrap et Gentoo."
+    options={{
+      title: "Longueur vs profondeur du bec",
+      ariaLabel: "Graphique en nuage de points montrant la relation entre la longueur et la profondeur du bec des manchots, avec des couleurs distinctes pour chaque espèce",
+      marks: [
+        Plot.dot(penguins, {
+          x: "culmen_length_mm",
+          y: "culmen_depth_mm",
+          stroke: "species",
+        }),
+      ],
+    }}
+  />
+  
+  <a href="/" class="back-link">← Retour à l'accueil</a>
+</Layout>
+
+<style>
+  .back-link {
+    display: inline-block;
+    margin-top: 2rem;
+    color: #0066cc;
+    text-decoration: none;
+  }
+  
+  .back-link:hover {
+    text-decoration: underline;
+  }
+</style>

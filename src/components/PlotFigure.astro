@@ -1,9 +1,51 @@
 ---
 import * as Plot from "@observablehq/plot";
 import { JSDOM } from "jsdom";
-const { options } = Astro.props;
+const { options, title, subtitle, caption } = Astro.props;
 
 const plot = Plot.plot({ ...options, document: new JSDOM("").window.document });
 ---
 
-<div set:html={plot.outerHTML} />
+{title || subtitle || caption ? (
+  <figure>
+    {(title || subtitle) && (
+      <figcaption>
+        {title && <strong>{title}</strong>}
+        {subtitle && <span class="subtitle">{subtitle}</span>}
+      </figcaption>
+    )}
+    <div set:html={plot.outerHTML} />
+    {caption && <figcaption class="caption-bottom">{caption}</figcaption>}
+  </figure>
+) : (
+  <div set:html={plot.outerHTML} />
+)}
+
+<style>
+  figure {
+    margin: 2rem 0;
+  }
+  
+  figcaption {
+    font-size: 0.9rem;
+    color: #555;
+  }
+  
+  figcaption strong {
+    display: block;
+    font-size: 1.1rem;
+    color: #222;
+    margin-bottom: 0.25rem;
+  }
+  
+  figcaption .subtitle {
+    display: block;
+    font-style: italic;
+    margin-bottom: 0.5rem;
+  }
+  
+  figcaption.caption-bottom {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+  }
+</style>

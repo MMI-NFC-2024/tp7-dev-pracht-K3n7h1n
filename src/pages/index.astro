@@ -1,21 +1,69 @@
 ---
-import PlotFigure from "../components/PlotFigure.astro";
 import Layout from "../layouts/Layout.astro";
-import * as Plot from "@observablehq/plot";
-import penguins from "../assets/penguins.json";
 ---
 
 <Layout>
-  <h1 class="text-2xl">Test Astro et Plot (Observablehq)</h1>
-  <PlotFigure
-    options={{
-      marks: [
-        Plot.dot(penguins, {
-          x: "culmen_length_mm",
-          y: "culmen_depth_mm",
-          stroke: "species",
-        }),
-      ],
-    }}
-  />
+  <h1 class="text-2xl">Visualisations de Données</h1>
+  <p class="intro">Bienvenue sur le site de visualisation de données. Explorez les différents graphiques disponibles :</p>
+  
+  <nav class="nav-cards">
+    <a href="/penguins" class="card">
+      <h2>Analyse des Manchots</h2>
+      <p>Visualisation des relations entre les dimensions du bec des manchots de différentes espèces.</p>
+    </a>
+    
+    <a href="/population" class="card">
+      <h2>Population par Département</h2>
+      <p>Carte choroplèthe de la population française par département pour l'année 2015.</p>
+    </a>
+    
+    <a href="/etablissements" class="card">
+      <h2>Établissements Universitaires</h2>
+      <p>Carte interactive des établissements d'enseignement supérieur en France.</p>
+    </a>
+  </nav>
 </Layout>
+
+<style>
+  .intro {
+    margin: 1rem 0 2rem;
+    color: #555;
+    font-size: 1.1rem;
+  }
+  
+  .nav-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  
+  .card {
+    display: block;
+    padding: 1.5rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+  }
+  
+  .card:hover {
+    border-color: #0066cc;
+    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .card h2 {
+    margin: 0 0 0.5rem;
+    color: #0066cc;
+    font-size: 1.3rem;
+  }
+  
+  .card p {
+    margin: 0;
+    color: #666;
+    line-height: 1.5;
+  }
+</style>
+
