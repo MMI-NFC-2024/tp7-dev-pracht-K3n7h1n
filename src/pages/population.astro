@@ -1,68 +1,220 @@
 ---
-import PlotFigure from "../components/PlotFigure.astro";
 import Layout from "../layouts/Layout.astro";
-import * as Plot from "@observablehq/plot";
-import departements from "../assets/departements.geojson.json";
-import populationMain from "../assets/populationMain.json";
-
-let selectedYear = 2015;
-let selectedSex = "Total";
-let selectedAge = "Total";
-
-const optionPlot = {
-  projection: {
-    type: "mercator", //utiliser une projection adaptée
-    domain: departements, // Domain pour centrer la carte sur la france
-  },
-  color: {
-    type: "quantile",
-    n: 8,
-    scheme: "Greens",
-    label: "Population en centaine de milliers",
-    legend: true,
-    transform: (d) => Math.round(d / 100000),
-  },
-  marks: [
-    Plot.geo(departements, {
-      fill: (d) => {
-        const deptName = d.properties.nom; //Nom du département dans le geoJson
-        const popData = populationMain.find(
-          (p) =>
-            p.Géographie === deptName &&
-            p.Période === selectedYear &&
-            p.Sexe === selectedSex &&
-            p["Âge"] === selectedAge
-        ); //trouver les données correspondantes
-        return popData.Valeur; //Coloriser en fonction de la valeur
-      },
-      stroke: "#999",
-      title: (d) => {
-        const deptName = d.properties.nom; //Nom du département dans le geoJson
-        const popData = populationMain.find(
-          (p) =>
-            p.Géographie === deptName &&
-            p.Période === selectedYear &&
-            p.Sexe === selectedSex &&
-            p["Âge"] === selectedAge
-        ); //trouver les données correspondantes
-        return `${deptName} : ${popData.Valeur}`; //Coloriser en fonction de la valeur
-      },
-      tip: true,
-    }),
-  ],
-};
 ---
 
 <Layout>
   <h1 class="text-2xl">Carte de la Population par Département</h1>
-  <h2 class="text-xl mt-4">Données pour l'année 2015</h2>
   
-  <PlotFigure options={optionPlot} />
+  <div class="controls">
+    <div class="control-group">
+      <label for="periode">Année :</label>
+      <select id="periode">
+        <!-- Options générées dynamiquement -->
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <label for="sexe">Sexe :</label>
+      <select id="sexe">
+        <!-- Options générées dynamiquement -->
+      </select>
+    </div>
+    
+    <div class="control-group">
+      <label for="age">Âge :</label>
+      <select id="age">
+        <!-- Options générées dynamiquement -->
+      </select>
+    </div>
+  </div>
+  
+  <div id="population-chart"></div>
   
   <a href="/" class="back-link">← Retour à l'accueil</a>
 </Layout>
 
+<script>
+  import * as Plot from "@observablehq/plot";
+  import departements from "../assets/departements.geojson.json";
+  import populationMain from "../assets/populationMain.json";
+
+  // Extraire les listes uniques pour les SELECT
+  const listePeriode = [
+    ...new Set(populationMain?.map((d) => d.Période)),
+  ].sort((a, b) => b - a); // Tri décroissant
+
+  const listeSexe = [
+    ...new Set(populationMain?.map((d) => d.Sexe)),
+  ];
+
+  const listeAge = [
+    ...new Set(populationMain?.map((d) => d["Âge"])),
+  ];
+
+  // Fonction pour remplir les SELECT
+  function populateSelects() {
+    const periodeSelect = document.getElementById("periode") as HTMLSelectElement;
+    const sexeSelect = document.getElementById("sexe") as HTMLSelectElement;
+    const ageSelect = document.getElementById("age") as HTMLSelectElement;
+
+    // Remplir le SELECT des périodes
+    listePeriode.forEach((p, i) => {
+      const option = document.createElement("option");
+      option.value = p.toString();
+      option.textContent = p.toString();
+      option.selected = i === 0;
+      periodeSelect.appendChild(option);
+    });
+
+    // Remplir le SELECT des sexes
+    listeSexe.forEach((s) => {
+      const option = document.createElement("option");
+      option.value = s;
+      option.textContent = s;
+      option.selected = s === "Total";
+      sexeSelect.appendChild(option);
+    });
+
+    // Remplir le SELECT des âges
+    listeAge.forEach((a) => {
+      const option = document.createElement("option");
+      option.value = a;
+      option.textContent = a;
+      option.selected = a === "Total";
+      ageSelect.appendChild(option);
+    });
+  }
+
+  // Fonction pour créer le graphique
+  function createChart(selectedYear: number, selectedSex: string, selectedAge: string) {
+    const optionPlot = {
+      projection: {
+        type: "mercator" as const,
+        domain: departements,
+      },
+      color: {
+        type: "quantile" as const,
+        n: 8,
+        scheme: "Greens" as const,
+        label: "Population en centaine de milliers",
+        legend: true,
+        transform: (d: number) => Math.round(d / 100000),
+      },
+      marks: [
+        Plot.geo(departements, {
+          fill: (d: any) => {
+            const deptName = d.properties.nom;
+            const popData = populationMain.find(
+              (p) =>
+                p.Géographie === deptName &&
+                p.Période === selectedYear &&
+                p.Sexe === selectedSex &&
+                p["Âge"] === selectedAge
+            );
+            return popData ? popData.Valeur : 0;
+          },
+          stroke: "#999",
+          title: (d: any) => {
+            const deptName = d.properties.nom;
+            const popData = populationMain.find(
+              (p) =>
+                p.Géographie === deptName &&
+                p.Période === selectedYear &&
+                p.Sexe === selectedSex &&
+                p["Âge"] === selectedAge
+            );
+            return `${deptName} : ${popData ? popData.Valeur.toLocaleString() : 'N/A'}`;
+          },
+          tip: true,
+        }),
+      ],
+    };
+
+    return Plot.plot(optionPlot);
+  }
+
+  // Fonction pour mettre à jour le graphique
+  function updateChart() {
+    const periodeSelect = document.getElementById("periode") as HTMLSelectElement;
+    const sexeSelect = document.getElementById("sexe") as HTMLSelectElement;
+    const ageSelect = document.getElementById("age") as HTMLSelectElement;
+    
+    const selectedYear = parseInt(periodeSelect.value);
+    const selectedSex = sexeSelect.value;
+    const selectedAge = ageSelect.value;
+    
+    const container = document.getElementById("population-chart");
+    if (container) {
+      // Vider le conteneur
+      container.innerHTML = "";
+      // Créer et ajouter le nouveau graphique
+      const chart = createChart(selectedYear, selectedSex, selectedAge);
+      container.appendChild(chart);
+    }
+  }
+
+  // Initialiser le graphique au chargement
+  document.addEventListener("DOMContentLoaded", () => {
+    // Remplir les SELECT d'abord
+    populateSelects();
+    
+    // Puis afficher le graphique initial
+    updateChart();
+    
+    // Ajouter les écouteurs d'événements sur les SELECT
+    document.getElementById("periode")?.addEventListener("change", updateChart);
+    document.getElementById("sexe")?.addEventListener("change", updateChart);
+    document.getElementById("age")?.addEventListener("change", updateChart);
+  });
+</script>
+
 <style>
+  .controls {
+    display: flex;
+    gap: 2rem;
+    margin: 2rem 0;
+    flex-wrap: wrap;
+    padding: 1.5rem;
+    background: #f5f5f5;
+    border-radius: 8px;
+  }
+  
+  .control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .control-group label {
+    font-weight: 600;
+    color: #333;
+    font-size: 0.9rem;
+  }
+  
+  .control-group select {
+    padding: 0.5rem 1rem;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    background: white;
+    font-size: 1rem;
+    cursor: pointer;
+    min-width: 150px;
+  }
+  
+  .control-group select:hover {
+    border-color: #0066cc;
+  }
+  
+  .control-group select:focus {
+    outline: none;
+    border-color: #0066cc;
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+  }
+  
+  #population-chart {
+    margin: 2rem 0;
+  }
+  
   .back-link {
     display: inline-block;
     margin-top: 2rem;
